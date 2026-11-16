@@ -78,7 +78,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .counter{background:var(--card);border-radius:20px;padding:40px clamp(24px,6vw,64px);max-width:520px;box-shadow:0 20px 50px #0002}
 .counter h2{font-family:Georgia,serif;font-size:clamp(32px,6vw,52px);font-weight:400}
 .counter p{color:var(--muted);margin:12px 0 24px}
-.counter a{display:inline-block;background:var(--ink);color:var(--bg);padding:14px 28px;border-radius:99px;text-decoration:none}
+.counter a,.counter button{display:inline-block;background:var(--ink);color:var(--bg);padding:14px 28px;border-radius:99px;text-decoration:none;border:0;font-size:inherit;cursor:pointer}
+.counter .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 </style>
 
 <!-- ============================================================
@@ -94,8 +95,8 @@ var STORE = {
   mapSub: "Tap any section to walk straight over, or keep scrolling to stroll the aisle.",
   checkoutTitle: "Ready to check out?",
   checkoutEmpty: "Your bag is empty. Take another stroll through the store.",
-  checkoutLink: "",            // e.g. "https://wa.me/234XXXXXXXXXX" or a payment link; "" hides the button
-  checkoutLinkText: "Complete order",
+  whatsapp: "2347015139329",            // your WhatsApp number with country code, digits only, e.g. "2348012345678". "" hides the button
+  email: "esuidongesit753@gmail.com",                  // order email, e.g. "orders@yourstore.com". "" hides the button
   currency: "$",
   colors: {
     accent: "#c4552d",          // buttons, highlights
@@ -152,8 +153,8 @@ var STORE = {
   <div class="counter">
     <h2 id="ct"></h2>
     <p id="sum"></p>
-    <a href="#map" id="cback">Back to the map</a>
-    <a href="#" id="clink" style="display:none;margin-left:8px" target="_blank" rel="noopener"></a>
+    <div class="row"><a href="#map" id="cback">Back to the map</a>
+    <a href="#" id="wa" target="_blank" rel="noopener" style="display:none">Order on WhatsApp</a><a href="#" id="em" style="display:none">Order by email</a><button id="cp" style="display:none">Copy order</button></div>
   </div>
 </section>
 
@@ -174,15 +175,19 @@ R.setProperty("--accent",C.accent);R.setProperty("--s1",C.awning1);R.setProperty
 document.title=STORE.name+" — "+STORE.tagline;
 $("brand").textContent=STORE.name;$("sign").textContent=STORE.name.toUpperCase();$("hint").textContent=STORE.hint;
 $("mt").textContent=STORE.mapTitle;$("ms").textContent=STORE.mapSub;$("ct").textContent=STORE.checkoutTitle;
-if(STORE.checkoutLink){var cl=$("clink");cl.href=STORE.checkoutLink;cl.textContent=STORE.checkoutLinkText;cl.style.display="inline-block"}
+
 var Z=STORE.sections.slice(0,4).map(function(s){return{n:s.name,d:s.desc,g:s.colors,items:s.items.map(function(t){return[t.name,t.price,t.image||""]})}});
 var SH=["border-radius:50%;width:56%;height:78%","border-radius:14px;width:62%;height:62%","border-radius:40px 40px 10px 10px;width:48%;height:80%"];
 var bag={},cur=0,lenis=null,plan=$("plan"),me=$("me"),M=STORE.currency;
 function card(z,i,k,it){var g='linear-gradient(135deg,'+z.g[0]+','+z.g[1]+')',p=it[2]?'<img src="'+it[2]+'" alt="'+it[0]+'" loading="lazy">':'<i style="'+SH[(i+k)%3]+'"></i>';
   return '<div class="item"><div class="pic" style="background:'+g+'">'+p+'</div><h3>'+it[0]+'</h3><span>'+M+it[1]+'</span><button data-n="'+it[0]+'" data-p="'+it[1]+'">Add to bag</button></div>'}
+function orderText(){var t=0,l=Object.keys(bag).map(function(k){t+=bag[k];return "• "+k+" — "+M+bag[k]}).join("\n");return "Hi "+STORE.name+", I’d like to order:\n"+l+"\nTotal: "+M+t+"\n\nName:\nDelivery address:"}
+function orderSync(n){var has=n.length>0,wa=$("wa"),em=$("em"),cp=$("cp"),x=has?orderText():"";
+  wa.style.display=STORE.whatsapp&&has?"inline-block":"none";em.style.display=STORE.email&&has?"inline-block":"none";cp.style.display=has?"inline-block":"none";
+  if(has){wa.href="https://wa.me/"+String(STORE.whatsapp).replace(/\D/g,"")+"?text="+encodeURIComponent(x);em.href="mailto:"+STORE.email+"?subject="+encodeURIComponent("New order — "+STORE.name)+"&body="+encodeURIComponent(x)}}
 function bagSync(){var n=Object.keys(bag),t=0;n.forEach(function(k){t+=bag[k]});
   $("bag").textContent="Bag · "+n.length;
-  $("sum").textContent=n.length?n.length+" item"+(n.length>1?"s":"")+" in your bag · "+M+t:STORE.checkoutEmpty;
+  $("sum").textContent=n.length?n.length+" item"+(n.length>1?"s":"")+" in your bag · "+M+t:STORE.checkoutEmpty;orderSync(n);
   document.querySelectorAll("button[data-n]").forEach(function(b){var on=b.dataset.n in bag;b.classList.toggle("on",on);b.textContent=on?"In your bag ✓":"Add to bag"})}
 Z.forEach(function(z,i){
   var b=document.createElement("button");b.className="zone";b.dataset.i=i;b.style.background="linear-gradient(135deg,"+z.g[0]+","+z.g[1]+")";
@@ -216,6 +221,7 @@ document.addEventListener("click",function(e){
 });
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&$("room").classList.contains("open"))closeRoom()});
 var tr=$("track");
+$("cp").addEventListener("click",function(){var b=this;try{navigator.clipboard.writeText(orderText());b.textContent="Copied ✓"}catch(e){b.textContent="Copy failed"}setTimeout(function(){b.textContent="Copy order"},2000)});
 Z.forEach(function(z,i){var s=document.createElement("div");s.className="az";
   s.innerHTML='<h2>'+z.n+'</h2><p>'+z.d+'</p><div class="ashelf">'+z.items.map(function(it,k){return card(z,i,k,it)}).join("")+'</div>';tr.appendChild(s)});
 bagSync();
@@ -228,8 +234,4 @@ if(window.gsap&&window.ScrollTrigger){
     .to("#scene",{scale:4.5,duration:1},.4).to("#scene",{opacity:0,duration:.3},1.1);
   gsap.from(".zone",{y:50,opacity:0,stagger:.12,duration:.7,scrollTrigger:{trigger:"#plan",start:"top 80%"}});
   var dist=function(){return tr.scrollWidth-window.innerWidth};
-  gsap.to(tr,{x:function(){return -dist()},ease:"none",scrollTrigger:{trigger:"#aisle",start:"top top",end:function(){return "+="+dist()},scrub:.6,pin:true,invalidateOnRefresh:true,onUpdate:function(s){$("pbar").style.width=(s.progress*100)+"%"}}});
-}
-</script>
-</body>
-</html>
+  gsap.to(tr,{x:function(){return -dist()},ease:"none",
