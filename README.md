@@ -8,7 +8,7 @@ An animated storefront: doors open on scroll, a tappable floor plan, a scrolling
    - `name`, `tagline`, and the text lines
    - `colors` (hex codes)
    - `sections` and their `items` (name, price, optional `image` link)
-   - `checkoutLink`: a WhatsApp or payment link so buyers can complete orders
+   - `whatsapp` and `email`: where orders are sent. At checkout, the bag becomes a pre-filled message with items and total. Leave either empty to hide that button.
 3. Commit your changes.
 
 ## Publish
